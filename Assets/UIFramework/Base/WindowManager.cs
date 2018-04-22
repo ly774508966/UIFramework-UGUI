@@ -438,28 +438,29 @@ public class WindowManager : MonoBehaviour
             {
                 if (window.windowType == WindowType.Pop)
                 {
-                    if(mWindowStack.Count > 0)
+                    if (mWindowStack.Count > 0)
                     {
                         mTmpWindowStack.Clear();
                         while (mWindowStack.Count > 0)
                         {
-                            var  w = mWindowStack.Peek();
-                            if(w.windowType != WindowType.Pop)
+                            BaseWindow w = mWindowStack.Pop();
+                            if (w.windowType == WindowType.Normal
+                                || w.windowType == WindowType.Root)
                             {
-                                w.OnResume();
+                                mTmpWindowStack.Push(w);
                                 break;
                             }
-                            else
+                            else if (w.windowType == WindowType.Pop)
                             {
-                                w = mWindowStack.Pop();
-                                w.OnResume();
                                 mTmpWindowStack.Push(w);
                             }
                         }
 
-                        while(mTmpWindowStack.Count > 0)
+                        while (mTmpWindowStack.Count > 0)
                         {
-                            mWindowStack.Push(mTmpWindowStack.Pop());
+                            BaseWindow w = mTmpWindowStack.Pop();
+                            mWindowStack.Push(w);
+                            w.OnResume();
                         }
                         mTmpWindowStack.Clear();
 
@@ -467,10 +468,9 @@ public class WindowManager : MonoBehaviour
                 }
 
                 mWindowStack.Push(window);
-                if (window.isPause)
-                {
-                    window.OnResume();
-                }
+
+                window.OnResume();
+
             }
         }
     }
@@ -507,6 +507,21 @@ public class WindowManager : MonoBehaviour
        // blurEffect.enabled = mWindowStack.Count > 1;
     }
 
-
+    public bool TouchUI()
+    {
+        bool touchedUI = false;
+        if (Application.isMobilePlatform)
+        {
+            if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            {
+                touchedUI = true;
+            }
+        }
+        else if (EventSystem.current.IsPointerOverGameObject())
+        {
+            touchedUI = true;
+        }
+        return touchedUI;
+    }
 }
 

@@ -67,6 +67,7 @@ public class BaseWindow : MonoBehaviour {
         rect.offsetMax = Vector2.zero;
         rect.offsetMin = Vector2.zero;
 
+
     }
 
 
@@ -85,7 +86,8 @@ public class BaseWindow : MonoBehaviour {
     {
         if(panel)
         {
-            panel.alpha =0;
+            panel.alpha = 0;
+            SetTouchEnable(false);
         }
         mPause = true;
     }
@@ -100,10 +102,19 @@ public class BaseWindow : MonoBehaviour {
         if (panel)
         {
             panel.alpha = 1;
+            SetTouchEnable(true);
         }
-        
+
         transform.SetAsLastSibling();
         WindowManager.GetSingleton().SetBlur();
+    }
+
+    public virtual void SetTouchEnable(bool enable)
+    {
+        if (panel)
+        {
+            panel.blocksRaycasts = enable;
+        }
     }
 
     /// <summary>
