@@ -47,6 +47,7 @@ public class BaseWindow : MonoBehaviour {
    void CreateMask()
     {
         GameObject go = new GameObject("Mask");
+      
         go.transform.SetParent(transform);
         go.transform.SetAsFirstSibling();
         go.transform.localPosition = Vector3.zero;
@@ -57,20 +58,14 @@ public class BaseWindow : MonoBehaviour {
 
         BoxCollider box = go.AddComponent<BoxCollider>();
         box.center = Vector3.zero;
-        /*
-        UIWidget widget = go.AddComponent<UIWidget>();
-        widget.depth = -1;
+        box.size = new Vector3(Screen.width, Screen.height, 0);
 
-        UIRoot root = WindowManager.uiRoot;
-
-        widget.width = root.manualWidth;
-        widget.height = root.manualHeight;
-        widget.autoResizeBoxCollider = true;
-        widget.SetAnchor(gameObject,0,0,0,0);
-      
-
-        widget.ResizeCollider();
-        */
+        RectTransform rect = go.AddComponent<RectTransform>();
+        rect.pivot = Vector2.one * 0.5f;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMax = Vector2.zero;
+        rect.offsetMin = Vector2.zero;
 
     }
 
