@@ -14,19 +14,34 @@ public class WindowManager : MonoBehaviour
     {
         if(mInstance == null)
         {
-            GameObject go = new GameObject(typeof(WindowManager).ToString());
-            DontDestroyOnLoad(go);
-            mInstance = go.AddComponent<WindowManager>();
-
             uiLayer = LayerMask.NameToLayer("UI");
             blurLayer = LayerMask.NameToLayer("Blur"); //如果没有该层请创建
 
-            GameObject canvasGo = new GameObject("Canvas");
+
+            GameObject go = new GameObject(typeof(WindowManager).ToString());
+            DontDestroyOnLoad(go);
+            go.layer = uiLayer;
+            mInstance = go.AddComponent<WindowManager>();
+
+           
+            GameObject cameraGo = new GameObject("Camera");
+            cameraGo.layer = uiLayer;
+            cameraGo.transform.SetParent(go.transform);
+            mInstance.mCamera =  cameraGo.AddComponent<Camera>();
+            mInstance.mCamera.clearFlags = CameraClearFlags.SolidColor;
+            mInstance.mCamera.orthographic = true;
+            mInstance.mCamera.orthographicSize = 5;
+            mInstance.mCamera.cullingMask = 1 << uiLayer;
+
+             GameObject canvasGo = new GameObject("Canvas");
+            canvasGo.layer = uiLayer;
             canvasGo.transform.SetParent(go.transform);
             canvasGo.AddComponent<RectTransform>();
 
             mInstance.mCanvas = canvasGo.AddComponent<Canvas>();
-            mInstance.mCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            mInstance.mCanvas.renderMode = RenderMode.ScreenSpaceCamera;
+            mInstance.mCanvas.worldCamera = mInstance.mCamera;
+             
 
             CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
@@ -38,6 +53,8 @@ public class WindowManager : MonoBehaviour
 
 
             GameObject eventGo = new GameObject("EventSystem");
+            eventGo.layer = uiLayer;
+
             eventGo.transform.SetParent(go.transform);
             mInstance.mEventSystem = eventGo.AddComponent<EventSystem>();
             mInstance.mEventSystem.sendNavigationEvents = true;
@@ -69,6 +86,7 @@ public class WindowManager : MonoBehaviour
     public static int uiLayer;
     public static int blurLayer;
 
+    public Camera mCamera;
     public Canvas mCanvas;
     public EventSystem mEventSystem;
     // public static UICamera blurCamera;

@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class UI_Main : BaseWindow
+public class UI_Main : FadeWindow
 {
     public UI_Main()
     {
-        //duration = 0.3f;
+        duration = 0.3f;
         mWindowType = WindowType.Root;
     }
     // Use this for initialization
