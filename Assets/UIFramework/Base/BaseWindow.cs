@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;
 
+public delegate void OnExitHandler();
+
 public class BaseWindow : MonoBehaviour {
 
     private string mPath;
@@ -11,11 +13,18 @@ public class BaseWindow : MonoBehaviour {
     /// </summary>
     public string path { get { return mPath; } set { mPath = value; } }
 
+    /// <summary>
+    /// 界面推出的回调
+    /// </summary>
+    public event OnExitHandler onExit;
+
     private bool mPause = false;
     public bool isPause { get { return mPause; } }
 
     protected WindowType mWindowType = WindowType.Normal;
     public WindowType windowType { get { return mWindowType; } }
+
+    protected bool mUseMask = false;
 
     private CanvasGroup mPanel;
     public CanvasGroup panel
@@ -44,7 +53,7 @@ public class BaseWindow : MonoBehaviour {
         }
     }
 
-   void CreateMask()
+    void CreateMask()
     {
         GameObject go = new GameObject("Mask");
       
@@ -56,18 +65,17 @@ public class BaseWindow : MonoBehaviour {
 
         mMask = go;
 
-        BoxCollider box = go.AddComponent<BoxCollider>();
-        box.center = Vector3.zero;
-        box.size = new Vector3(Screen.width, Screen.height, 0);
-
-        RectTransform rect = go.AddComponent<RectTransform>();
+        Image image = go.AddComponent<Image>();
+        image.raycastTarget = true;
+        image.color = new Color(0, 0, 0, 30f/255);
+        
+        RectTransform rect = go.GetComponent<RectTransform>();
         rect.pivot = Vector2.one * 0.5f;
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMax = Vector2.zero;
         rect.offsetMin = Vector2.zero;
-
-
+        
     }
 
 
@@ -76,7 +84,17 @@ public class BaseWindow : MonoBehaviour {
     /// </summary>
     public virtual void OnEnter()
     {
-        CreateMask();
+        RectTransform rect = gameObject.GetComponent<RectTransform>();
+        rect.pivot = Vector2.one * 0.5f;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMax = Vector2.zero;
+        rect.offsetMin = Vector2.zero;
+
+        if(mUseMask)
+        {
+            CreateMask();
+        }
     }
 
     /// <summary>
@@ -89,6 +107,7 @@ public class BaseWindow : MonoBehaviour {
             panel.alpha = 0;
             SetTouchEnable(false);
         }
+     
         mPause = true;
     }
 
@@ -106,7 +125,6 @@ public class BaseWindow : MonoBehaviour {
         }
 
         transform.SetAsLastSibling();
-        WindowManager.GetSingleton().SetBlur();
     }
 
     public virtual void SetTouchEnable(bool enable)
@@ -123,7 +141,11 @@ public class BaseWindow : MonoBehaviour {
     public virtual void OnExit()
     {
         Destroy(gameObject);
-        WindowManager.GetSingleton().SetBlur();
+
+        if(onExit!=null)
+        {
+            onExit();
+        }
     }
 
     /// <summary>
@@ -131,6 +153,6 @@ public class BaseWindow : MonoBehaviour {
     /// </summary>
     protected virtual void Close()
     {
-        WindowManager.GetSingleton().Close();
+        WindowManager.GetSingleton().Close(this);
     }
 }

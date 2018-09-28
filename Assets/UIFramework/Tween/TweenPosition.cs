@@ -93,6 +93,27 @@ public class TweenPosition : UITweener
 		}
 		return comp;
 	}
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="go"></param>
+    /// <param name="duration"></param>
+    /// <param name="formPos"></param>
+    /// <param name="toPos"></param>
+    /// <param name="worldSpace"></param>
+    /// <returns></returns>
+    static public TweenPosition Begin(GameObject go, float duration, Vector3 formPos, Vector3 toPos)
+    {
+        TweenPosition comp = UITweener.Begin<TweenPosition>(go, duration);
+        comp.from = formPos;
+        comp.to = toPos;
 
+        if (duration <= 0f)
+        {
+            comp.Sample(1f, true);
+            comp.enabled = false;
+        }
+        return comp;
+    }
 	
 }

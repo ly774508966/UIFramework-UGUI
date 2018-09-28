@@ -6,8 +6,8 @@ using UnityEngine.EventSystems;
 
 public class WindowManager : MonoBehaviour
 {
-    public const int DESIGN_WIDTH = 1280;
-    public const int DESIGN_HEIGHT = 720;
+    public const int DESIGN_WIDTH = 1334;
+    public const int DESIGN_HEIGHT = 750;
 
     static WindowManager mInstance;
     public static WindowManager GetSingleton()
@@ -28,7 +28,8 @@ public class WindowManager : MonoBehaviour
             cameraGo.layer = uiLayer;
             cameraGo.transform.SetParent(go.transform);
             mInstance.mCamera =  cameraGo.AddComponent<Camera>();
-            mInstance.mCamera.clearFlags = CameraClearFlags.SolidColor;
+            mInstance.mCamera.clearFlags = CameraClearFlags.Depth;
+            mInstance.mCamera.depth = 10;
             mInstance.mCamera.orthographic = true;
             mInstance.mCamera.orthographicSize = 5;
             mInstance.mCamera.cullingMask = 1 << uiLayer;
@@ -44,8 +45,9 @@ public class WindowManager : MonoBehaviour
              
 
             CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.scaleFactor = 1;
+            scaler.referenceResolution = new Vector2(DESIGN_WIDTH, DESIGN_HEIGHT);
             scaler.referencePixelsPerUnit = 100;
 
             GraphicRaycaster raycaster = canvasGo.AddComponent<GraphicRaycaster>();
@@ -63,20 +65,6 @@ public class WindowManager : MonoBehaviour
 
             StandaloneInputModule inputModule = eventGo.AddComponent<StandaloneInputModule>();
 
-       
-
-            //GameObject blurGo = Instantiate(uiCamera.gameObject) as GameObject;
-            //blurGo.transform.SetParent(uiRoot.transform);
-            //blurCamera = blurGo.GetComponent<UICamera>();
-            /*
-                        camera = blurCamera.GetComponent<Camera>();
-                        camera.clearFlags = CameraClearFlags.Depth;
-                        //NGUITools.MakeMask(blurCamera.GetComponent<Camera>(), blurLayer);
-                        //NGUITools.SetLayer(blurGo, blurLayer);
-                        camera.depth = 0;*/
-            ///blurGo.AddComponent<BlurEffect>();
-            //blurCamera.enabled = false;
-            //blurEffect.enabled = false;
 
         }
 
@@ -89,25 +77,7 @@ public class WindowManager : MonoBehaviour
     public Camera mCamera;
     public Canvas mCanvas;
     public EventSystem mEventSystem;
-    // public static UICamera blurCamera;
-    // public static UIRoot uiRoot;
-    public static BlurEffect blurEffect
-    {
-        get
-        {
-            /*
-            if(blurCamera)
-            {
-                if(blurCamera.GetComponent<BlurEffect>()==null)
-                {
-                    blurCamera.gameObject.AddComponent<BlurEffect>();
-                }
-                return blurCamera.GetComponent<BlurEffect>();
-            }
-            */
-            return null;
-        }
-    }
+ 
     public static void SetTouchable(bool touchable)
     {
         
@@ -212,7 +182,7 @@ public class WindowManager : MonoBehaviour
                 });
                 */
 
-                GameObject asset = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                GameObject asset = Resources.Load<GameObject>(path);
 
                 if (asset)
                 {
@@ -291,7 +261,7 @@ public class WindowManager : MonoBehaviour
                         }
                     }
                 }
-                else if(t.windowType == WindowType.Pop)
+                else if (t.windowType == WindowType.Pop)
                 {
                     //Pop类型的不需要暂停上一个窗口
                 }
@@ -310,8 +280,6 @@ public class WindowManager : MonoBehaviour
             SetLayer(t.transform);
 
             mWindowStack.Push(t);
-
-            t.OnResume();
         }
 
         SetTouchable(true);
@@ -320,9 +288,14 @@ public class WindowManager : MonoBehaviour
         {
             callback(t);
         }
+
+        if (t)
+        {
+            t.OnResume();
+        }
     }
 
-    public T Get<T>()where T :BaseWindow
+    public T Get<T>() where T :BaseWindow
     {
         if(mWindowStack == null)
         {
@@ -346,36 +319,55 @@ public class WindowManager : MonoBehaviour
     /// <summary>
     /// 关闭最上面的UI,不会关闭Root窗口
     /// </summary>
-    public void Close()
+    public void Close<T>() where T:BaseWindow
     {
-        if (mWindowStack == null) return;
-
-        if(mWindowStack.Count > 0)
+        T t = Get<T>();
+        if (t)
         {
-            SetTouchable(false);
-
-            BaseWindow window = mWindowStack.Peek();
-
-            if(window && window.windowType != WindowType.Root)
-            {
-                mWindowStack.Pop();
-                window.OnExit();
-            }
-
-       
-            if(mWindowStack.Count >0)
-            {
-                window = mWindowStack.Peek();
-
-                if (window && window.isPause)
-                {
-                    window.OnResume();
-                }
-            }
-
-            SetTouchable(true);
+            Close(t);
         }
     }
+
+    public void Close(BaseWindow baseWindow)
+    {
+        if (baseWindow == null ||mWindowStack == null) return;
+        if (mTmpWindowStack == null) mTmpWindowStack = new Stack<BaseWindow>();
+
+        SetTouchable(false);
+
+        while (mWindowStack.Count > 0)
+        {
+            BaseWindow window = mWindowStack.Pop();
+            if (window != baseWindow)
+            {
+                mTmpWindowStack.Push(mWindowStack.Pop());
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        baseWindow.OnExit();
+
+        while (mTmpWindowStack.Count > 0)
+        {
+            mWindowStack.Push(mTmpWindowStack.Pop());
+        }
+
+        if (mWindowStack.Count > 0)
+        {
+            BaseWindow window = mWindowStack.Peek();
+
+            if (window && window.isPause)
+            {
+                window.OnResume();
+            }
+        }
+
+        SetTouchable(true);
+    }
+
 
 
     private BaseWindow Get(WindowType windowType) 
@@ -489,24 +481,7 @@ public class WindowManager : MonoBehaviour
         mWindowStack.Clear();
     }
 
-    public void SetBlur()
-    {
-        if(mWindowStack.Count > 0)
-        {
-            BaseWindow w = mWindowStack.Pop();
-            //NGUITools.SetLayer(w.gameObject, uiLayer);
-
-            if(mWindowStack.Count > 0)
-            {
-                BaseWindow b = mWindowStack.Peek();
-                //NGUITools.SetLayer(b.gameObject, blurLayer);
-            }
-
-            mWindowStack.Push(w);
-        }
-       // blurEffect.enabled = mWindowStack.Count > 1;
-    }
-
+  
     public bool TouchUI()
     {
         bool touchedUI = false;

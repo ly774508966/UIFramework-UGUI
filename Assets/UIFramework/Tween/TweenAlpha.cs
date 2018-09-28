@@ -4,7 +4,7 @@
 //----------------------------------------------
 
 using UnityEngine;
-
+using UnityEngine.UI;
 /// <summary>
 /// Tween the object's alpha. Works with both UI widgets as well as renderers.
 /// </summary>
@@ -17,6 +17,7 @@ public class TweenAlpha : UITweener
 
 	bool mCached = false;
     CanvasGroup mCanvasGroup;
+    Graphic mGraphic;
 	
 	void Cache ()
 	{
@@ -24,10 +25,14 @@ public class TweenAlpha : UITweener
 
         mCanvasGroup = GetComponent<CanvasGroup>();
 
-		if (mCanvasGroup == null)
-		{
-            mCanvasGroup = gameObject.AddComponent<CanvasGroup>();
-		}
+        if (mCanvasGroup == null)
+        {
+            mGraphic = transform.GetComponent<Graphic>();
+            if (mGraphic == null)
+            {
+                mCanvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+        }
 	}
 
 	/// <summary>
@@ -40,16 +45,25 @@ public class TweenAlpha : UITweener
         {
             if (!mCached) Cache();
 
-            return mCanvasGroup.alpha;
-
+            if (mCanvasGroup)
+                return mCanvasGroup.alpha;
+            else
+                return mGraphic.color.a;
 
         }
         set
         {
             if (!mCached) Cache();
-
-            mCanvasGroup.alpha = value;
-
+            if (mCanvasGroup)
+            {
+                mCanvasGroup.alpha = value;
+            }
+            else
+            {
+                var color = mGraphic.color;
+                color.a = value;
+                mGraphic.color = color;
+            }
         }
     }
 	/// <summary>

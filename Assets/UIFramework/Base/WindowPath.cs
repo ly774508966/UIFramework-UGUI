@@ -5,12 +5,18 @@ public class WindowPath
 {
     readonly static Dictionary<string, string> windowPath = new Dictionary<string, string>
     {
-        {typeof(UI_Main).ToString(),"Assets/UI/UI_Main/UI_Main.prefab" },
-        {typeof(UI_ScaleWindow).ToString(),"Assets/UI/UI_ScaleWindow/UI_ScaleWindow.prefab" },
-        {typeof(UI_FadeWindow).ToString(),"Assets/UI/UI_FadeWindow/UI_FadeWindow.prefab" },
-        {typeof(UI_MoveWindow).ToString(),"Assets/UI/UI_MoveWindow/UI_MoveWindow.prefab" },
-        {typeof(UI_PopWindow).ToString(),"Assets/UI/UI_PopWindow/UI_PopWindow.prefab" },
-        {typeof(UI_Dialog).ToString(),"Assets/UI/UI_Dialog/UI_Dialog.prefab" },
+        {typeof(UI_StartUp).ToString(),"R/UI/UI_StartUp/UI_StartUp" },
+        {typeof(UI_Login).ToString(),"R/UI/UI_Login/UI_Login" },
+        
+        {typeof(UI_Main).ToString(),"R/UI/UI_Main/UI_Main" },
+      
+        {typeof(UI_Confirm).ToString(),"R/UI/UI_Confirm/UI_Confirm" },
+        {typeof(UI_Loading).ToString(),"R/UI/UI_Loading/UI_Loading" },
+        {typeof(UI_Tips).ToString(),"R/UI/UI_Tips/UI_Tips" },
+
+        {typeof(UI_LoadingMap).ToString(),"R/UI/UI_Loading/UI_LoadingMap" },
+        {typeof(UI_Message).ToString(),"R/UI/UI_Message/UI_Message" },
+
     };
 
     public static string Get<T>() where T: BaseWindow
